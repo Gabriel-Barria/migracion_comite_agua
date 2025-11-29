@@ -11,9 +11,11 @@ main { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
 .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 h1 { color: #156082; }
 
-.filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
 .filters input, .filters select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
 .filters input[type="text"] { min-width: 200px; }
+.checkbox-filter { display: flex; align-items: center; gap: 0.3rem; padding: 0.5rem; background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+.checkbox-filter input { width: auto; margin: 0; }
 
 .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 0.9rem; }
 .btn-primary { background: #156082; color: white; }

@@ -87,6 +87,7 @@ def lecturas():
     usuario_id = request.args.get('usuario_id', '')
     periodo = request.args.get('periodo', '')
     estado_pago = request.args.get('estado_pago', '')
+    sin_foto = request.args.get('sin_foto', '')
     conn = get_db()
     query = '''
         SELECT l.*, u.nombre, u.primer_apellido, u.segundo_apellido, u.telefono
@@ -104,13 +105,15 @@ def lecturas():
     if estado_pago:
         query += ' AND l.estado_pago = ?'
         params.append(estado_pago)
+    if sin_foto:
+        query += ' AND (l.imagen_medidor IS NULL OR l.imagen_medidor = "")'
     query += ' ORDER BY l.periodo DESC, u.primer_apellido'
     lecturas = conn.execute(query, params).fetchall()
     usuarios = conn.execute('SELECT id, nombre, primer_apellido FROM usuarios WHERE estado="Activo" ORDER BY primer_apellido').fetchall()
     periodos = conn.execute('SELECT DISTINCT periodo FROM lecturas ORDER BY periodo DESC').fetchall()
     conn.close()
     return render_template('lecturas.html', lecturas=lecturas, usuarios=usuarios, periodos=periodos,
-                           usuario_id=usuario_id, periodo=periodo, estado_pago=estado_pago)
+                           usuario_id=usuario_id, periodo=periodo, estado_pago=estado_pago, sin_foto=sin_foto)
 
 @app.route('/lecturas/nueva', methods=['GET', 'POST'])
 def lectura_nueva():

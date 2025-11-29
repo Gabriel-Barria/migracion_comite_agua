@@ -24,6 +24,9 @@
         <option value="PENDIENTE" {% if estado_pago == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
         <option value="PAGADO" {% if estado_pago == 'PAGADO' %}selected{% endif %}>Pagado</option>
     </select>
+    <label class="checkbox-filter">
+        <input type="checkbox" name="sin_foto" value="1" {% if sin_foto %}checked{% endif %}> Sin foto medidor
+    </label>
     <button type="submit" class="btn">Filtrar</button>
     <a href="{{ url_for('lecturas') }}" class="btn btn-secondary">Limpiar</a>
 </form>
