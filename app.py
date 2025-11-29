@@ -250,7 +250,7 @@ def lectura_pdf(id):
     ol{{ list-style: disc; }}
 </style>
 <body>
-    <h2 class="titulo">COBRO AGUA PASAJE BACUHE</h2>
+    <h2 class="titulo">COBRO AGUA PASAJE BAUCHE</h2>
     <section class="number_container">
         COMPROBANTE N° <span>{lectura['id']}</span>
     </section>
