@@ -33,7 +33,11 @@
     <div class="form-row">
         <div class="form-group">
             <label>Lectura Anterior *</label>
-            <input type="number" name="lectura_anterior" id="lectura_anterior" value="{{ lectura.lectura_anterior|int if lectura else '' }}" step="1" required onchange="calcular()">
+            <div style="display: flex; gap: 5px;">
+                <input type="number" name="lectura_anterior" id="lectura_anterior" value="{{ lectura.lectura_anterior|int if lectura else '' }}" step="1" required onchange="calcular()" {% if not lectura %}readonly{% endif %} style="flex: 1;">
+                <button type="button" id="btn_editar_anterior" onclick="habilitarEdicionAnterior()" class="btn btn-secondary" style="padding: 5px 10px;" title="Editar manualmente">&#9998;</button>
+            </div>
+            {% if not lectura %}<small id="lectura_anterior_info">Se carga automáticamente al seleccionar usuario</small>{% endif %}
         </div>
         <div class="form-group">
             <label>Lectura Actual *</label>
@@ -138,6 +142,59 @@ function cargarUsuarios() {
             select.innerHTML = '<option value="">Error al cargar</option>';
             console.error(err);
         });
+
+    // Limpiar lectura anterior cuando cambia el periodo
+    if (!esEdicion) {
+        document.getElementById('lectura_anterior').value = '';
+        calcular();
+    }
+}
+
+function cargarLecturaAnterior() {
+    const periodo = document.getElementById('periodo').value;
+    const usuarioId = document.getElementById('usuario_id').value;
+    const inputAnterior = document.getElementById('lectura_anterior');
+    const infoSpan = document.getElementById('lectura_anterior_info');
+
+    if (!periodo || !usuarioId || esEdicion) return;
+
+    fetch('/api/lectura-anterior?usuario_id=' + encodeURIComponent(usuarioId) + '&periodo=' + encodeURIComponent(periodo))
+        .then(response => response.json())
+        .then(data => {
+            inputAnterior.value = data.lectura_anterior;
+            if (infoSpan) {
+                if (data.lectura_anterior > 0) {
+                    infoSpan.textContent = 'Cargado del periodo anterior';
+                } else {
+                    infoSpan.textContent = 'Sin registros anteriores (valor: 0)';
+                }
+            }
+            calcular();
+        })
+        .catch(err => {
+            console.error(err);
+            inputAnterior.value = 0;
+            calcular();
+        });
+}
+
+function habilitarEdicionAnterior() {
+    const input = document.getElementById('lectura_anterior');
+    const btn = document.getElementById('btn_editar_anterior');
+    const infoSpan = document.getElementById('lectura_anterior_info');
+
+    if (input.readOnly) {
+        input.readOnly = false;
+        input.focus();
+        btn.innerHTML = '&#10003;';
+        btn.title = 'Confirmar edición';
+        if (infoSpan) infoSpan.textContent = 'Modo edición manual';
+    } else {
+        input.readOnly = true;
+        btn.innerHTML = '&#9998;';
+        btn.title = 'Editar manualmente';
+        if (infoSpan) infoSpan.textContent = 'Valor editado manualmente';
+    }
 }
 
 function calcular() {
@@ -157,6 +214,9 @@ function calcular() {
     document.getElementById('total_display').textContent = total.toLocaleString('es-CL', {maximumFractionDigits: 0});
     document.getElementById('saldo_display').value = '$' + saldo.toLocaleString('es-CL', {maximumFractionDigits: 0});
 }
+
+// Agregar listener al cambio de usuario
+document.getElementById('usuario_id').addEventListener('change', cargarLecturaAnterior);
 
 calcular();
 // Si ya hay periodo al cargar, cargar usuarios

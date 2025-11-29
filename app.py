@@ -328,6 +328,39 @@ def usuarios_disponibles():
     conn.close()
     return jsonify([{'id': u['id'], 'nombre': u['nombre'], 'primer_apellido': u['primer_apellido']} for u in usuarios])
 
+@app.route('/api/lectura-anterior')
+def lectura_anterior():
+    usuario_id = request.args.get('usuario_id', '')
+    periodo = request.args.get('periodo', '')
+    if not usuario_id or not periodo:
+        return jsonify({'lectura_anterior': 0})
+
+    # Parsear periodo actual (MM-YYYY) para comparar correctamente
+    try:
+        mes, anio = periodo.split('-')
+        mes = int(mes)
+        anio = int(anio)
+        # Convertir a formato YYYY-MM para ordenar cronológicamente
+        periodo_ordenable = f"{anio:04d}-{mes:02d}"
+    except:
+        return jsonify({'lectura_anterior': 0})
+
+    conn = get_db()
+    # Buscar la lectura más reciente anterior al periodo seleccionado
+    # Convertimos MM-YYYY a YYYY-MM para comparar correctamente
+    lectura = conn.execute('''
+        SELECT lectura_actual FROM lecturas
+        WHERE usuario_id = ?
+        AND (SUBSTR(periodo, 4, 4) || '-' || SUBSTR(periodo, 1, 2)) < ?
+        ORDER BY (SUBSTR(periodo, 4, 4) || '-' || SUBSTR(periodo, 1, 2)) DESC
+        LIMIT 1
+    ''', (usuario_id, periodo_ordenable)).fetchone()
+    conn.close()
+
+    if lectura:
+        return jsonify({'lectura_anterior': lectura['lectura_actual']})
+    return jsonify({'lectura_anterior': 0})
+
 if __name__ == '__main__':
     init_db()
     importar_usuarios_excel()
