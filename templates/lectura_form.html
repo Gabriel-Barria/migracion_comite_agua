@@ -45,10 +45,12 @@
         </div>
         <div class="form-group">
             <label>Foto del Medidor</label>
-            <input type="file" name="imagen_medidor" accept="image/*">
-            {% if lectura and lectura.imagen_medidor %}
-            <small>Actual: {{ lectura.imagen_medidor }}</small>
-            {% endif %}
+            <input type="file" name="imagen_medidor" id="imagen_medidor" accept="image/*" onchange="previsualizarImagen(this, 'preview_medidor')">
+            <div id="preview_medidor" class="preview-container">
+                {% if lectura and lectura.imagen_medidor %}
+                <img src="{{ url_for('ver_medidor', filename=lectura.imagen_medidor) }}" alt="Foto medidor">
+                {% endif %}
+            </div>
         </div>
     </div>
     <div class="form-row">
@@ -101,10 +103,16 @@
         </div>
         <div class="form-group">
             <label>Comprobante de Pago</label>
-            <input type="file" name="comprobante_pago" accept="image/*,.pdf">
-            {% if lectura and lectura.comprobante_pago %}
-            <small>Actual: {{ lectura.comprobante_pago }}</small>
-            {% endif %}
+            <input type="file" name="comprobante_pago" id="comprobante_pago" accept="image/*,.pdf" onchange="previsualizarImagen(this, 'preview_comprobante')">
+            <div id="preview_comprobante" class="preview-container">
+                {% if lectura and lectura.comprobante_pago %}
+                {% if lectura.comprobante_pago.endswith('.pdf') %}
+                <a href="{{ url_for('ver_comprobante', filename=lectura.comprobante_pago) }}" target="_blank" class="btn btn-secondary">Ver PDF</a>
+                {% else %}
+                <img src="{{ url_for('ver_comprobante', filename=lectura.comprobante_pago) }}" alt="Comprobante">
+                {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -113,6 +121,12 @@
         <a href="{{ url_for('lecturas') }}" class="btn btn-secondary">Cancelar</a>
     </div>
 </form>
+
+<!-- Modal para ver imagen grande -->
+<div id="modal-imagen" class="modal-imagen" onclick="cerrarModal()">
+    <span class="modal-cerrar">&times;</span>
+    <img id="modal-img" src="" alt="Imagen ampliada">
+</div>
 
 <script>
 const esEdicion = {{ 'true' if lectura else 'false' }};
@@ -217,6 +231,45 @@ function calcular() {
 
 // Agregar listener al cambio de usuario
 document.getElementById('usuario_id').addEventListener('change', cargarLecturaAnterior);
+
+function previsualizarImagen(input, previewId) {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = '';
+
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+
+        if (file.type === 'application/pdf') {
+            preview.innerHTML = '<span class="pdf-preview">PDF seleccionado: ' + file.name + '</span>';
+        } else if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Preview';
+                img.onclick = function() { abrirModal(this.src); };
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+
+function abrirModal(src) {
+    const modal = document.getElementById('modal-imagen');
+    const modalImg = document.getElementById('modal-img');
+    modal.style.display = 'flex';
+    modalImg.src = src;
+}
+
+function cerrarModal() {
+    document.getElementById('modal-imagen').style.display = 'none';
+}
+
+// Agregar click a imágenes existentes
+document.querySelectorAll('.preview-container img').forEach(img => {
+    img.onclick = function() { abrirModal(this.src); };
+});
 
 calcular();
 // Si ya hay periodo al cargar, cargar usuarios
