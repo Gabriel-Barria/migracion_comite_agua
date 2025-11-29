@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Lecturas - Comité de Agua{% endblock %}
+{% block content %}
+<div class="header-actions">
+    <h1>Lecturas</h1>
+    <a href="{{ url_for('lectura_nueva') }}" class="btn btn-primary">+ Nueva Lectura</a>
+</div>
+
+<form class="filters" method="GET">
+    <select name="usuario_id">
+        <option value="">Todos los usuarios</option>
+        {% for u in usuarios %}
+        <option value="{{ u.id }}" {% if usuario_id|string == u.id|string %}selected{% endif %}>{{ u.primer_apellido }}, {{ u.nombre }}</option>
+        {% endfor %}
+    </select>
+    <select name="periodo">
+        <option value="">Todos los periodos</option>
+        {% for p in periodos %}
+        <option value="{{ p.periodo }}" {% if periodo == p.periodo %}selected{% endif %}>{{ p.periodo }}</option>
+        {% endfor %}
+    </select>
+    <select name="estado_pago">
+        <option value="">Todos los estados</option>
+        <option value="PENDIENTE" {% if estado_pago == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+        <option value="PAGADO" {% if estado_pago == 'PAGADO' %}selected{% endif %}>Pagado</option>
+    </select>
+    <button type="submit" class="btn">Filtrar</button>
+    <a href="{{ url_for('lecturas') }}" class="btn btn-secondary">Limpiar</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Periodo</th>
+            <th>Usuario</th>
+            <th>Lect. Ant</th>
+            <th>Lect. Act</th>
+            <th>Consumo</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Pagado</th>
+            <th>Saldo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for l in lecturas %}
+        <tr>
+            <td>{{ l.periodo }}</td>
+            <td>{{ l.nombre }} {{ l.primer_apellido }}</td>
+            <td>{{ l.lectura_anterior|int }}</td>
+            <td>{{ l.lectura_actual|int }}</td>
+            <td>{{ l.consumo_m3|int }} m³</td>
+            <td>${{ '{:,.0f}'.format(l.total_factura) }}</td>
+            <td><span class="badge {{ 'badge-success' if l.estado_pago == 'PAGADO' else 'badge-warning' }}">{{ l.estado_pago }}</span></td>
+            <td>${{ '{:,.0f}'.format(l.monto_pagado) }}</td>
+            <td>${{ '{:,.0f}'.format(l.saldo_pendiente) }}</td>
+            <td class="actions">
+                <a href="{{ url_for('lectura_editar', id=l.id) }}" class="btn btn-small">Editar</a>
+                <a href="{{ url_for('lectura_pdf', id=l.id) }}" class="btn btn-small btn-secondary">PDF</a>
+                {% if l.imagen_medidor %}
+                <a href="{{ url_for('ver_medidor', filename=l.imagen_medidor) }}" target="_blank" class="btn btn-small">Medidor</a>
+                {% endif %}
+                {% if l.comprobante_pago %}
+                <a href="{{ url_for('ver_comprobante', filename=l.comprobante_pago) }}" target="_blank" class="btn btn-small">Comprobante</a>
+                {% endif %}
+                <form method="POST" action="{{ url_for('lectura_eliminar', id=l.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar esta lectura?')">
+                    <button type="submit" class="btn btn-small btn-danger">X</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p class="count">Total: {{ lecturas|length }} lecturas</p>
+{% endblock %}

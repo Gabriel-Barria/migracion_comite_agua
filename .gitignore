@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+data/
+comprobantes/
+medidores/
+*.db
+.DS_Store
+.vscode/
+.idea/
+.claude/

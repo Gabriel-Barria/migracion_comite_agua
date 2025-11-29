@@ -1,0 +1,12 @@
+services:
+  comite-agua:
+    build: .
+    container_name: comite-agua
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./comprobantes:/app/comprobantes
+      - ./medidores:/app/medidores
+      - ./base_antigua:/app/base_antigua
+    restart: unless-stopped

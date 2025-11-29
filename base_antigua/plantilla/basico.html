@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<style type="text/css">
+	body{
+		font-family: verdana;
+		width: 80%;
+		margin: auto;
+
+	}
+	.head_container .data_container{
+		display: block;
+		height: 30px;
+	}
+	.pay_container, .total_container{
+		border:1px solid black;
+	}
+	.pay_container{
+		padding: 5px;
+	}
+	.total_container{
+		margin-bottom: 30px;
+		font-weight: bold;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+	}
+	.data_table{
+		width: 100%;
+		margin-bottom: 20px;
+		border-collapse: collapse;
+	}
+	.titulo{
+		text-align: center;
+	}
+	.data_table thead{
+		background-color: #156082;
+		color:white;
+		height: 40px;
+
+	}
+	.head_container{
+		margin-bottom:15px; 
+	}
+	.number_container{
+		height: 80px;
+		display:flex;
+		align-items: center;
+		margin-bottom: 20px;
+	}
+	td, th, tr{
+		border:solid 1px black;
+	}
+	ol{
+		list-style: disc;
+	}
+</style>
+<body>
+	<h2 class="titulo">COBRO AGUA PASAJE BACUHE</h2>
+	<section class="number_container">
+		COMPROBANTE Nº<span></span>
+	</section>
+	<section class="head_container">
+		<div class="data_container">
+			<label>Cliente:</label>
+			<span></span>
+		</div>
+		<div class="data_container">
+			<label>Télefono:</label>
+			<span></span>
+		</div>
+		<div class="data_container">
+			<label>Periodo:</label>
+			<span></span>
+		</div>
+		<div class="data_container">
+			<label>Fecha:</label>
+			<span></span>
+		</div>
+		<div class="data_container">
+			<label>Fecha limite de pago:</label>
+			<span></span>
+		</div>
+	</section>
+	<section class="table_container">
+		<table class="data_table">
+			<thead>
+				<tr>
+					<th>CANTIDAD</th>
+					<th>DESCRIPCION</th>
+					<th>VALOR</th>
+					<th>COSTO TOTAL</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>1</td>
+					<td>1</td>
+					<td>1</td>
+					<td>1</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>1</td>
+					<td>1</td>
+					<td>1</td>
+				</tr>
+			</tbody>			
+		</table>
+		<div class="total_container">Total:<span id="total"></span></div>
+	</section>
+	<section class="pay_container">
+		<h4>Métodos de pago:</h2>
+		<div>1.-Efectivo </div>
+		<div>2.-Transferencia a la siguiente cuenta:</div>
+		<ol style="margin-top:2px;">
+			<li>Banco: Banco Estado</li>
+			<li>Nº de cuenta: 82970400962</li>
+			<li>RUT: 65096733-k</li>
+			<li>Tipo de Cuenta:  Cuenta Vista o Chequera electrónica</li>
+			<li>Nombre: Comité de Trabajo Pasaje Bauche</li>
+			<li>Email: comite.bauche@gmail.com</li>
+		</ol>
+	</section>
+
+</body>
+</html>

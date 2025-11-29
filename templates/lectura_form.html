@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if lectura else 'Nueva' }} Lectura - Comité de Agua{% endblock %}
+{% block content %}
+<div class="header-actions">
+    <h1>{{ 'Editar' if lectura else 'Nueva' }} Lectura</h1>
+    <a href="{{ url_for('lecturas') }}" class="btn btn-secondary">Volver</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="form-card">
+    <h3>Datos de Lectura</h3>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Periodo * (MM-YYYY)</label>
+            <input type="text" name="periodo" id="periodo" value="{{ lectura.periodo if lectura else '' }}" placeholder="01-2025" required onchange="cargarUsuarios()">
+            {% if not lectura %}<small>Ingresa el periodo primero para ver usuarios disponibles</small>{% endif %}
+        </div>
+        <div class="form-group">
+            <label>Usuario * <span id="usuarios_count"></span></label>
+            <select name="usuario_id" id="usuario_id" required>
+                <option value="">{% if lectura %}Seleccionar...{% else %}Primero ingresa el periodo{% endif %}</option>
+                {% if lectura %}
+                {% for u in usuarios %}
+                <option value="{{ u.id }}" {% if lectura.usuario_id == u.id %}selected{% endif %}>{{ u.primer_apellido }}, {{ u.nombre }}</option>
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Fecha Lectura</label>
+            <input type="date" name="fecha_lectura" value="{{ lectura.fecha_lectura if lectura else '' }}">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Lectura Anterior *</label>
+            <input type="number" name="lectura_anterior" id="lectura_anterior" value="{{ lectura.lectura_anterior|int if lectura else '' }}" step="1" required onchange="calcular()">
+        </div>
+        <div class="form-group">
+            <label>Lectura Actual *</label>
+            <input type="number" name="lectura_actual" id="lectura_actual" value="{{ lectura.lectura_actual|int if lectura else '' }}" step="1" required onchange="calcular()">
+        </div>
+        <div class="form-group">
+            <label>Foto del Medidor</label>
+            <input type="file" name="imagen_medidor" accept="image/*">
+            {% if lectura and lectura.imagen_medidor %}
+            <small>Actual: {{ lectura.imagen_medidor }}</small>
+            {% endif %}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Tarifa por m³</label>
+            <input type="number" name="tarifa_m3" id="tarifa_m3" value="{{ lectura.tarifa_m3 if lectura else 1182.6 }}" step="0.1" onchange="calcular()">
+        </div>
+        <div class="form-group">
+            <label>Cargo Fijo</label>
+            <input type="number" name="cargo_fijo" id="cargo_fijo" value="{{ lectura.cargo_fijo if lectura else 5000 }}" step="1" onchange="calcular()">
+        </div>
+    </div>
+    <div class="form-row calc-row">
+        <div class="calc-item"><span>Consumo:</span> <strong id="consumo_display">0</strong> m³</div>
+        <div class="calc-item"><span>Subtotal:</span> $<strong id="subtotal_display">0</strong></div>
+        <div class="calc-item"><span>Total Factura:</span> $<strong id="total_display">0</strong></div>
+    </div>
+
+    <hr>
+    <h3>Datos de Pago</h3>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Estado de Pago</label>
+            <select name="estado_pago" id="estado_pago">
+                <option value="PENDIENTE" {% if not lectura or lectura.estado_pago == 'PENDIENTE' %}selected{% endif %}>PENDIENTE</option>
+                <option value="PAGADO" {% if lectura and lectura.estado_pago == 'PAGADO' %}selected{% endif %}>PAGADO</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Monto Pagado</label>
+            <input type="number" name="monto_pagado" id="monto_pagado" value="{{ lectura.monto_pagado if lectura else 0 }}" step="1" onchange="calcular()">
+        </div>
+        <div class="form-group">
+            <label>Saldo Pendiente</label>
+            <input type="text" id="saldo_display" readonly>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Fecha de Pago</label>
+            <input type="date" name="fecha_pago" value="{{ lectura.fecha_pago if lectura else '' }}">
+        </div>
+        <div class="form-group">
+            <label>Forma de Pago</label>
+            <select name="forma_pago">
+                <option value="">Seleccionar...</option>
+                <option value="Efectivo" {% if lectura and lectura.forma_pago == 'Efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="Transferencia" {% if lectura and lectura.forma_pago == 'Transferencia' %}selected{% endif %}>Transferencia</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Comprobante de Pago</label>
+            <input type="file" name="comprobante_pago" accept="image/*,.pdf">
+            {% if lectura and lectura.comprobante_pago %}
+            <small>Actual: {{ lectura.comprobante_pago }}</small>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{{ url_for('lecturas') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+<script>
+const esEdicion = {{ 'true' if lectura else 'false' }};
+
+function cargarUsuarios() {
+    const periodo = document.getElementById('periodo').value;
+    const select = document.getElementById('usuario_id');
+    const countSpan = document.getElementById('usuarios_count');
+
+    if (!periodo || esEdicion) return;
+
+    select.innerHTML = '<option value="">Cargando...</option>';
+
+    fetch('/api/usuarios-disponibles?periodo=' + encodeURIComponent(periodo))
+        .then(response => response.json())
+        .then(usuarios => {
+            select.innerHTML = '<option value="">Seleccionar...</option>';
+            usuarios.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = u.primer_apellido + ', ' + u.nombre;
+                select.appendChild(option);
+            });
+            countSpan.textContent = '(' + usuarios.length + ' disponibles)';
+        })
+        .catch(err => {
+            select.innerHTML = '<option value="">Error al cargar</option>';
+            console.error(err);
+        });
+}
+
+function calcular() {
+    const anterior = parseFloat(document.getElementById('lectura_anterior').value) || 0;
+    const actual = parseFloat(document.getElementById('lectura_actual').value) || 0;
+    const tarifa = parseFloat(document.getElementById('tarifa_m3').value) || 0;
+    const cargoFijo = parseFloat(document.getElementById('cargo_fijo').value) || 0;
+    const pagado = parseFloat(document.getElementById('monto_pagado').value) || 0;
+
+    const consumo = actual - anterior;
+    const subtotal = consumo * tarifa;
+    const total = subtotal + cargoFijo;
+    const saldo = total - pagado;
+
+    document.getElementById('consumo_display').textContent = consumo.toFixed(0);
+    document.getElementById('subtotal_display').textContent = subtotal.toLocaleString('es-CL', {maximumFractionDigits: 0});
+    document.getElementById('total_display').textContent = total.toLocaleString('es-CL', {maximumFractionDigits: 0});
+    document.getElementById('saldo_display').value = '$' + saldo.toLocaleString('es-CL', {maximumFractionDigits: 0});
+}
+
+calcular();
+// Si ya hay periodo al cargar, cargar usuarios
+if (document.getElementById('periodo').value && !esEdicion) {
+    cargarUsuarios();
+}
+</script>
+{% endblock %}

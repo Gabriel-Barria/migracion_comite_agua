@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios - Comité de Agua{% endblock %}
+{% block content %}
+<div class="header-actions">
+    <h1>Usuarios</h1>
+    <a href="{{ url_for('usuario_nuevo') }}" class="btn btn-primary">+ Nuevo Usuario</a>
+</div>
+
+<form class="filters" method="GET">
+    <input type="text" name="buscar" placeholder="Buscar por nombre..." value="{{ buscar }}">
+    <select name="estado">
+        <option value="">Todos los estados</option>
+        <option value="Activo" {% if estado == 'Activo' %}selected{% endif %}>Activo</option>
+        <option value="Inactivo" {% if estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+    </select>
+    <button type="submit" class="btn">Filtrar</button>
+    <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Limpiar</a>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>RUT</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in usuarios %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.nombre }} {{ u.primer_apellido }} {{ u.segundo_apellido or '' }}</td>
+            <td>{{ u.rut or '-' }}</td>
+            <td>{{ u.telefono or '-' }}</td>
+            <td>{{ u.direccion or '-' }}</td>
+            <td><span class="badge {{ 'badge-success' if u.estado == 'Activo' else 'badge-danger' }}">{{ u.estado }}</span></td>
+            <td class="actions">
+                <a href="{{ url_for('usuario_editar', id=u.id) }}" class="btn btn-small">Editar</a>
+                <form method="POST" action="{{ url_for('usuario_eliminar', id=u.id) }}" style="display:inline" onsubmit="return confirm('¿Eliminar este usuario?')">
+                    <button type="submit" class="btn btn-small btn-danger">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p class="count">Total: {{ usuarios|length }} usuarios</p>
+{% endblock %}
